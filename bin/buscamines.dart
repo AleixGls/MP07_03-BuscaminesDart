@@ -14,6 +14,11 @@ void main(List<String> arguments) {
 
   // Generar el tablero
   // Generar la lista principal(Matriz) que sera el tablero
+  // .   = Casilla sin descubrir
+  // " " = Casilla descubierta sin minas alrededor
+  // 1~8 = Numero de minas adyacentes
+  // #   = bandera
+  // *   = mina
   List<List<String>> tablero = List.generate(
 
     // Generar las listas que seran las filas dentro de la lista principal
@@ -53,7 +58,6 @@ void main(List<String> arguments) {
   colocarMinas(minas, 3, 6, 0, 5);
   // Derecho
   colocarMinas(minas, 3, 6, 5, 10);
-
 
   mostrarTablero(tablero);
 }
@@ -178,5 +182,141 @@ void mostrarTablero(List<List<String>> tablero) {
 
     // Salto de linea para pasar a la siguiente fila
     print('');
+  }
+
+
+}
+
+// Funcion para destapar las casillas y comprobar si una mina explota
+bool destaparCasilla(
+  List<List<String>> tablero,
+  List<List<bool>> minas,
+  int fila,
+  int columna,
+  bool esPrimeraJugada,
+  bool esJugadaUsuario,
+) {
+
+  // Comprobacion si la casilla es valida
+  if (
+    fila < 0 ||
+    fila >= tablero.length ||
+    columna < 0 ||
+    columna >= tablero[0].length ||
+    tablero[fila][columna] != '·'
+  ) {
+    return false;
+  }
+
+  // Comprobar si en la casilla seleccionada hay una mina
+  if (minas[fila][columna]) {
+
+    // Mover la mina a otra posición
+    if (esPrimeraJugada) {
+      moverMina(minas, fila, columna);
+      
+    // Si el jugador ha seleccionado la mina explota
+    } else if (esJugadaUsuario) {
+      return true;
+
+    // La funcion esta descubriendo la casilla durante la recursividad,
+    // a si que no hace nada
+    } else {
+      return false;
+    }
+  }
+
+  // Contar las minas adyacentes
+  int numeroMinas = contarMinasAdyacentes(minas, fila, columna);
+
+  // Actualizar el tablero
+  // Si no hay ninguna mina adyacente, vaciar la casilla
+  if (numeroMinas == 0) {
+    tablero[fila][columna] = ' ';
+
+  // Si hay una o mas minas adyacentes, poner el numero de minas en la casilla
+  } else {
+    tablero[fila][columna] = numeroMinas.toString();
+  }
+
+  // Si la casilla no tiene minas alrededor, descubrir sus 8 adyacentes
+  if (numeroMinas == 0) {
+      
+    // Ir moviendose por las filas adyacentes
+    for (
+      int desplazamientoFila = -1;
+      desplazamientoFila <= 1;
+      desplazamientoFila++
+    ) {
+        
+      // Ir moviendose por las columnas adyacentes
+      for (
+        int desplazamientoColumna = -1;
+        desplazamientoColumna <= 1;
+        desplazamientoColumna++
+      ) {
+          
+        // Llamar a esta misma funcion para repetir 
+        // el proceso con todas las casillas adyacentes
+        destaparCasilla(
+          tablero,
+          minas,
+          fila + desplazamientoFila,
+          columna + desplazamientoColumna,
+          false,
+          false,
+        );
+      }
+    }
+  }
+
+  // Si no ha habido ninguna explosion en todo el proceso,
+  // devolver false indicando que no ha explotado ninguna mina
+  return false;
+}
+
+// Metodo por si la primera posicion seleccionada es una mina, cambiarla de ubicacion
+void moverMina(
+  List<List<bool>> minas,
+  int fila,
+  int columna,
+) {
+
+  // Eliminar la mina de la posicion original
+  minas[fila][columna] = false;
+
+  // Crear el generador de numeros y las variables con la nueva posicion de la mina
+  Random random = Random();
+  int nuevaFila;
+  int nuevaColumna;
+
+  do {
+    // Conseguir una posicion al azaar dentro del tablero
+    nuevaFila = random.nextInt(minas.length);
+    nuevaColumna = random.nextInt(minas[0].length);
+
+  // Repetir el proceso hasta encontrar una casilla que este libre
+  } while (
+    minas[nuevaFila][nuevaColumna]
+  );
+
+  // Cuando encuentre una que este libre, coloca alli la mina
+  minas[nuevaFila][nuevaColumna] = true;
+}
+
+// Metodo para poner o quitar banderas del tablero
+void gestionarBandera(
+  List<List<String>> tablero,
+  int fila,
+  int columna,
+) {
+
+  // Si no habia una bandera marcada en la casilla, cambiar esa casilla a una bandera
+  if (tablero[fila][columna] == '·') {
+    tablero[fila][columna] = '#';
+
+  // Si habia una bandera marcada en la casilla, cambiar esa bandera a una casilla normal
+  } else if (tablero[fila][columna] == '#') {
+    tablero[fila][columna] = '·';
   }
 }
