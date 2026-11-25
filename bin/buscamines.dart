@@ -59,6 +59,7 @@ void main(List<String> arguments) {
   // Derecho
   colocarMinas(minas, 3, 6, 5, 10);
 
+
   mostrarTablero(tablero);
 }
 
@@ -275,7 +276,7 @@ bool destaparCasilla(
   return false;
 }
 
-// Metodo por si la primera posicion seleccionada es una mina, cambiarla de ubicacion
+// Funcion por si la primera posicion seleccionada es una mina, cambiarla de ubicacion
 void moverMina(
   List<List<bool>> minas,
   int fila,
@@ -285,15 +286,45 @@ void moverMina(
   // Eliminar la mina de la posicion original
   minas[fila][columna] = false;
 
+  // Variables para comprobar el cuadrante de la bomba que se movera
+  int filaInicio;
+  int filaFin;
+  int columnaInicio;
+  int columnaFin;
+
+  // Comprobacion del cuadrante de la fila
+  // Arriba
+  if (fila < 3) {
+    filaInicio = 0;
+    filaFin = 3;
+  //Abajo
+  } else {
+    filaInicio = 3;
+    filaFin = 6;
+  }
+
+  // Comprobacion del cuadrante de la columna
+  // Izquierda
+  if (columna < 5) {
+    columnaInicio = 0;
+    columnaFin = 5;
+  // Derecha
+  } else {
+    columnaInicio = 5;
+    columnaFin = 10;
+  }
+
   // Crear el generador de numeros y las variables con la nueva posicion de la mina
   Random random = Random();
   int nuevaFila;
   int nuevaColumna;
 
+  // Bucle para conseguir la nueva posicion de la mina
   do {
-    // Conseguir una posicion al azaar dentro del tablero
-    nuevaFila = random.nextInt(minas.length);
-    nuevaColumna = random.nextInt(minas[0].length);
+    // Conseguir una posicion al azar dentro del tablero, 
+    // determinada por el cuadrante de la mina original
+    nuevaFila = filaInicio + random.nextInt(filaFin - filaInicio);
+    nuevaColumna = columnaInicio + random.nextInt(columnaFin - columnaInicio);
 
   // Repetir el proceso hasta encontrar una casilla que este libre
   } while (
@@ -318,5 +349,33 @@ void gestionarBandera(
   // Si habia una bandera marcada en la casilla, cambiar esa bandera a una casilla normal
   } else if (tablero[fila][columna] == '#') {
     tablero[fila][columna] = '·';
+  }
+}
+
+// Funcion para leer la accion que quiere ejecutar el usuario
+void leerComando() {
+
+  // Texto de entrada
+  print('Introduce un comando:');
+
+  // Leer el texto que ponga el usuario
+  String? entrada = stdin.readLineSync();
+
+  // Si no hay nada en la entrada, no hacer nada
+  if (entrada == null) {
+    return;
+  }
+
+  // Procesar el texto que ha introducido el usuario,
+  // 1. trim() quita los espacios al principio y final
+  // 2. toLowerCase() combierte toda la entrada a minusculas
+  entrada = entrada.trim().toLowerCase();
+
+  if (entrada == 'cheat' || entrada == 'trampes') {
+    print('Has escrito el comando cheat');
+  } else if (entrada == 'help' || entrada == 'ajuda') {
+    print('Has escrito el comando help');
+  } else {
+    List<String> partes = entrada.split(' ');
   }
 }
